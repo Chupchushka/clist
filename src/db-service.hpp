@@ -24,17 +24,17 @@ public:
 
   void closeDB() { sqlite3_close(pDB); }
 
-  void execSql(char *sql) {
-    int exit = 0;
-    char *errMessage;
-    exit = sqlite3_exec(pDB, sql, NULL, 0, &errMessage);
+  void execSql(const char *sql) {
+    char *errMessage = nullptr;
 
-    if (exit != SQLITE_OK) {
-      std::cerr << "Sql couldn't be executed sql error " << errMessage << std::endl;
-      sqlite3_free(errMessage);
+    int rc = sqlite3_exec(pDB, sql, nullptr, nullptr, &errMessage);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "Sql couldn't be executed. Error: "
+                  << (errMessage ? errMessage : "unknown") << std::endl;
+        if (errMessage) sqlite3_free(errMessage);
     }
   }
-
   void readDataStmt()
 {
     char* sql = "SELECT * FROM 'tasks'; ";

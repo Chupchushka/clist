@@ -46,6 +46,7 @@ public:
     if (done != 1 && done != 0) {
       std::cerr << "Incorrect value " << done << std::endl;
     } else {
+      // Update db
       char sql[256];
 
       snprintf(sql, sizeof(sql),
@@ -56,5 +57,14 @@ public:
 
       db_service.execSql(sql);
     }
+  }
+
+  void printTable(){
+    db_service.readDataStmt();
+  }
+
+  void printHelp(){
+    std::cout << "Clist help message" << std::endl;
+    std::cout << "Command list:" << std::endl;
   }
 };
