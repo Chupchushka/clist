@@ -24,13 +24,13 @@ public:
 
   void closeDB() { sqlite3_close(pDB); }
 
-  void execSql(const char *sql) {
+  void execSql(char *sql) {
     int exit = 0;
     char *errMessage;
     exit = sqlite3_exec(pDB, sql, NULL, 0, &errMessage);
 
     if (exit != SQLITE_OK) {
-      std::cerr << "Sql couldn't be executed sql error " << std::endl;
+      std::cerr << "Sql couldn't be executed sql error " << errMessage << std::endl;
       sqlite3_free(errMessage);
     }
   }
