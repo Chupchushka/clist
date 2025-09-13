@@ -1,6 +1,7 @@
 #pragma once
 
 #include "todo-service.hpp"
+#include <string>
 
 class UI{
   private:
@@ -37,7 +38,13 @@ class UI{
           todo_service.markDone(done_flag ? 1 : 0, task_id);
           i += 2;
         }
-        
+        else if (std::string(argv[i]) == "addTag" || std::string(argv[i]) == "-t" && i + 2 < argc) {
+          int task_id = std::stoi(argv[i + 1]);
+          std::string tag_name = argv[i + 2];
+
+          todo_service.addTag(task_id, tag_name.c_str());
+          i += 2;
+        }
         else if (std::string(argv[i]) == "help" || std::string(argv[i]) == "-h")
         {
             todo_service.printHelp();

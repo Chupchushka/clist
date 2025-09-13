@@ -2,7 +2,9 @@
 
 #include "db-service.hpp"
 #include "iostream"
+#include <cstddef>
 #include <cstdio>
+#include <sqlite3.h>
 #include <string>
 
 class TodoService {
@@ -14,12 +16,23 @@ public:
   TodoService(DbService &dbs) : db_service(dbs) {}
 
   void createTable() {
+
+    // Create table tasks
     char *sql = "CREATE TABLE IF NOT EXISTS tasks("
                 "task_id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 "task TEXT NOT NULL, "
-                "done INTEGER NOT NULL); ";
+                "done INTEGER NOT NULL, "
+                "tag_id INTEGER, "
+                "FOREIGN KEY (tag_id) REFERENCES tags(tag_id) ); ";
 
     db_service.execSql(sql);
+    
+    // Create table tags
+    char *sqlTags = "CREATE TABLE IF NOT EXISTS tags( "
+                    "tag_id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    "name TEXT NOT NULL ); ";
+
+    db_service.execSql(sqlTags);
   }
 
   void addTask(const char *task) {
@@ -46,6 +59,7 @@ public:
     if (done != 1 && done != 0) {
       std::cerr << "Incorrect value " << done << std::endl;
     } else {
+
       // Update db
       char sql[256];
 
@@ -58,12 +72,47 @@ public:
       db_service.execSql(sql);
     }
   }
+  
+  void addTag(int task_id, const char* tag_name){
 
-  void printTable(){
-    db_service.readDataStmt();
+    // Adding the tag to tags
+    const char *sqlTag = "INSERT INTO tags (name) "
+                         "VALUES (?); ";
+    sqlite3_stmt* stmtTag;
+
+    if (sqlite3_prepare_v2(db_service.pDB, sqlTag, -1, &stmtTag, nullptr) != SQLITE_OK) {
+      std::cerr << "Prepare failed " << sqlite3_errmsg(db_service.pDB) << std::endl;
+    }
+    sqlite3_bind_text(stmtTag, 1, tag_name, -1, SQLITE_TRANSIENT);
+    
+    sqlite3_finalize(stmtTag);
+
+    int tag_id = sqlite3_last_insert_rowid(db_service.pDB);
+    
+    // Update the tasks table setting the tag_id
+    const char *sqlUpdate = "UPDATE tasks SET tag_id = ? WHERE task_id = ?; ";
+    sqlite3_stmt* stmtUpdate;
+
+    if (sqlite3_prepare_v2(db_service.pDB, sqlUpdate, -1, &stmtUpdate, nullptr) != SQLITE_OK) {
+      std::cerr << "Prepare failed " << sqlite3_errmsg(db_service.pDB) << std::endl;
+    }
+
+    sqlite3_bind_int(stmtUpdate, 1, tag_id);
+    sqlite3_bind_int(stmtUpdate, 2, task_id);
+
+    if (sqlite3_step(stmtUpdate) != SQLITE_DONE){
+      std::cerr << "Execution failed: " << sqlite3_errmsg(db_service.pDB);
+      sqlite3_finalize(stmtUpdate);
+    }
+    
+    sqlite3_finalize(stmtUpdate);
+
+    std::cout << "tag added with id = " << tag_id << "to task" << task_id << std::endl;
   }
 
-  void printHelp(){
+  void printTable() { db_service.readDataStmt(); }
+
+  void printHelp() {
     std::cout << "Clist help message" << std::endl;
     std::cout << "Command list:" << std::endl;
   }
