@@ -121,6 +121,50 @@ public:
     std::cout << "tag added with id = " << tag_id << "to task " << task_id
               << std::endl;
   }
+  
+  void removeTag(int tag_id){
+
+    // Set the tag_id to deafault tag
+    const char *taskRemove = "UPDATE tasks "
+                             "SET tag_id = 0 "
+                             "WHERE tag_id = ? ;";
+    sqlite3_stmt *stmt;
+
+    if (sqlite3_prepare_v2(db_service.pDB, taskRemove, -1, &stmt, nullptr) !=
+        SQLITE_OK) {
+        std::cerr << "Prepare failed " << sqlite3_errmsg(db_service.pDB)
+                << std::endl;
+    }
+  
+    sqlite3_bind_int(stmt, 1, tag_id);
+    sqlite3_step(stmt);
+
+    sqlite3_finalize(stmt);
+
+    // Delete tag from tags table
+    const char *tagRemove = "DELETE FROM tags "
+                            "Where tag_id = ? ";
+    sqlite3_stmt *tag_stmt;
+
+    if (sqlite3_prepare_v2(db_service.pDB, tagRemove, -1, &tag_stmt, nullptr) !=
+        SQLITE_OK) {
+        std::cerr << "Prepare failed " << sqlite3_errmsg(db_service.pDB)
+                << std::endl;
+    }
+    
+    sqlite3_bind_int(stmt, 1, tag_id);
+    sqlite3_step(stmt);
+
+    sqlite3_finalize(tag_stmt);
+
+  }
+
+  void addDefaultTag(){
+    const char *sql = "INSERT INTO tags (name) "
+                      "VALUES ('No tag') ;" ;
+    db_service.execSql(sql);
+
+  }
 
   void printTable() { db_service.readDataStmt(); }
 
