@@ -1,6 +1,7 @@
 #pragma once
 
 #include "todo-service.hpp"
+#include <iostream>
 #include <string>
 
 class UI{
@@ -58,7 +59,7 @@ class UI{
         
         else
         {
-            todo_service.printHelp();
+          std::cerr << "Incorrect command: " << argv[i] << " Please use clist help or clist -h to see list pf commands. " << std::endl;
         }
     }
 
