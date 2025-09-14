@@ -8,7 +8,7 @@ build:
 clean:
 	rm ./clist
 	rm db.sqlite3
-	rm /usr/local/bin/clist
+	sudo rm /usr/local/bin/clist
 	echo "Cleaning complete"
 
 rebuild: clean build
