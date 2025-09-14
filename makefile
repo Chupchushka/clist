@@ -1,7 +1,7 @@
 all: build
 	
 build:
-	g++ src/main.cpp -o clist -l sqlite3
+	g++ src/main.cpp -o clist -l sqlite3 -lfmt
 	sudo ln -s ~/clist/clist /usr/local/bin/clist
 	echo "Build complited"
 

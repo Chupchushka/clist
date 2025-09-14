@@ -2,7 +2,6 @@
 
 #include "db-service.hpp"
 #include "iostream"
-#include <cstddef>
 #include <cstdio>
 #include <sqlite3.h>
 #include <string>
@@ -14,6 +13,7 @@ private:
 
 public:
   TodoService(DbService &dbs) : db_service(dbs) {}
+
 
   void createTable() {
 
@@ -159,9 +159,6 @@ public:
 
   }
 
-
-
-  void printTable() { db_service.readDataStmt(); }
 
   void printHelp() {
     std::cout << R"(usage: clist [--help] <command> [<args>]

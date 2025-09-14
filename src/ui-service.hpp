@@ -1,16 +1,23 @@
 #pragma once
 
+#include "db-service.hpp"
 #include "todo-service.hpp"
+#include <cstddef>
+#include <cstdio>
 #include <iostream>
 #include <string>
+#include <fmt/core.h>
+#include <fmt/color.h>
+
 
 class UI{
   private:
     TodoService &todo_service;
+    DbService &db_service;
 
   public:
-    UI(TodoService &tds) : todo_service(tds) {}
-    
+    UI(TodoService &tds, DbService &dbs) : todo_service(tds),db_service(dbs) {}
+
     void parseArgs(int argc, char* argv[]){
 
     for (int i = 1; i < argc; i++)
@@ -29,7 +36,7 @@ class UI{
         }
         else if (std::string(argv[i]) == "list" || std::string(argv[i]) == "-l")
         {
-            todo_service.printTable();
+            printTableColor();
         }
         else if ((std::string(argv[i]) == "mark" || std::string(argv[i]) == "-m") && i + 2 < argc)
         {
@@ -63,6 +70,65 @@ class UI{
         }
     }
 
+  }
+  
+  fmt::color parseColors(std::string color_name){
+    if (color_name == "white" || color_name == "White"){
+      return fmt::color::white;
+    } else if (color_name == "red" || color_name == "Red"){
+      return fmt::color::red;
+    } else if (color_name == "blue" || color_name == "Blue"){
+      return fmt::color::blue;
+    } else if (color_name == "green" || color_name == "Green"){
+      return fmt::color::green;
+    } else if (color_name == "yellow" || color_name == "Yellow"){
+      return fmt::color::yellow;
+    } else if (color_name == "purple" || color_name == "Purple"){
+      return fmt::color::purple;
+    } else if (color_name == "pink" || color_name == "Pink"){
+      return fmt::color::pink;
+    } else {
+      return fmt::color::white;
+    }
+  }
+
+  
+static int callback(void *data, int count, char **argv, char **columnNames) {
+    UI *ui = static_cast<UI*>(data);
+
+    // Find the color column for this row
+    fmt::color parsed = fmt::color::white; // default
+    for (int i = 0; i < count; i++) {
+        if (std::string(columnNames[i]) == "color" && argv[i] != nullptr) {
+            parsed = ui->parseColors(argv[i]);
+            break;  
+      }
+    }
+
+    // Print the whole row with that color
+    for (int i = 0; i < count; i++) {
+        fmt::print(fg(parsed) | fmt::emphasis::bold,
+                   "{}: {}\n", columnNames[i], argv[i] ? argv[i] : "NULL");
+    }
+
+    fmt::print("\n");  
+    return 0;
+}
+
+
+
+  void printTableColor(){
+    char *errMsg = 0;
+    char *sql = "SELECT task_id, task, done, tasks.tag_id, name, color FROM tasks "
+                "LEFT JOIN tags ON tags.tag_id = tasks.tag_id ; ";
+
+    int rc = sqlite3_exec(db_service.pDB, sql, callback, this, &errMsg);
+    if (rc != SQLITE_OK) {
+      printf("Error in executing SQL: %s \n", errMsg);
+      sqlite3_free(errMsg);
+    } else {
+      printf("read data successfully \n");
+    }
   }
 
 };
