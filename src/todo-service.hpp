@@ -26,11 +26,12 @@ public:
                 "FOREIGN KEY (tag_id) REFERENCES tags(tag_id) ); ";
 
     db_service.execSql(sql);
-    
+
     // Create table tags
     char *sqlTags = "CREATE TABLE IF NOT EXISTS tags( "
                     "tag_id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                    "name TEXT NOT NULL ); ";
+                    "name TEXT NOT NULL, "
+                    "color TEXT NOT NULL ); ";
 
     db_service.execSql(sqlTags);
   }
@@ -72,42 +73,53 @@ public:
       db_service.execSql(sql);
     }
   }
-  
-  void addTag(int task_id, const char* tag_name){
+
+  void addTag(int task_id, const char *tag_name, const char *tag_color) {
 
     // Adding the tag to tags
-    const char *sqlTag = "INSERT INTO tags (name) "
-                         "VALUES (?); ";
-    sqlite3_stmt* stmtTag;
+    const char *sqlTag = "INSERT INTO tags (name, color )"
+                         "VALUES (?, ?) ; ";
+    sqlite3_stmt *stmtTag;
 
-    if (sqlite3_prepare_v2(db_service.pDB, sqlTag, -1, &stmtTag, nullptr) != SQLITE_OK) {
-      std::cerr << "Prepare failed " << sqlite3_errmsg(db_service.pDB) << std::endl;
+    std::cout << sqlTag << std::endl;
+
+    if (sqlite3_prepare_v2(db_service.pDB, sqlTag, -1, &stmtTag, nullptr) !=
+        SQLITE_OK) {
+      std::cerr << "Prepare failed " << sqlite3_errmsg(db_service.pDB)
+                << std::endl;
     }
+
     sqlite3_bind_text(stmtTag, 1, tag_name, -1, SQLITE_TRANSIENT);
-    
+    sqlite3_bind_text(stmtTag, 2, tag_color, -1, SQLITE_TRANSIENT);
+
+    sqlite3_step(stmtTag);
+
     sqlite3_finalize(stmtTag);
 
     int tag_id = sqlite3_last_insert_rowid(db_service.pDB);
-    
+
     // Update the tasks table setting the tag_id
     const char *sqlUpdate = "UPDATE tasks SET tag_id = ? WHERE task_id = ?; ";
-    sqlite3_stmt* stmtUpdate;
+    sqlite3_stmt *stmtUpdate;
 
-    if (sqlite3_prepare_v2(db_service.pDB, sqlUpdate, -1, &stmtUpdate, nullptr) != SQLITE_OK) {
-      std::cerr << "Prepare failed " << sqlite3_errmsg(db_service.pDB) << std::endl;
+    if (sqlite3_prepare_v2(db_service.pDB, sqlUpdate, -1, &stmtUpdate,
+                           nullptr) != SQLITE_OK) {
+      std::cerr << "Prepare failed " << sqlite3_errmsg(db_service.pDB)
+                << std::endl;
     }
 
     sqlite3_bind_int(stmtUpdate, 1, tag_id);
     sqlite3_bind_int(stmtUpdate, 2, task_id);
 
-    if (sqlite3_step(stmtUpdate) != SQLITE_DONE){
+    if (sqlite3_step(stmtUpdate) != SQLITE_DONE) {
       std::cerr << "Execution failed: " << sqlite3_errmsg(db_service.pDB);
       sqlite3_finalize(stmtUpdate);
     }
-    
+
     sqlite3_finalize(stmtUpdate);
 
-    std::cout << "tag added with id = " << tag_id << "to task" << task_id << std::endl;
+    std::cout << "tag added with id = " << tag_id << "to task " << task_id
+              << std::endl;
   }
 
   void printTable() { db_service.readDataStmt(); }
