@@ -66,7 +66,7 @@ class UI{
         }
         else if (std::string(argv[i]) == "help" || std::string(argv[i]) == "-h")
         {
-            todo_service.printHelp();
+            printHelp();
         }
         
         else
@@ -153,6 +153,45 @@ static int callback(void *data, int count, char **argv, char **columnNames) {
       } else {
         printf("read data successfully \n");
       }
+  }
+
+  void printHelp() {
+    std::cout << R"(usage: clist [--help] <command> [<args>]
+
+These are common todo commands used in various situations:
+
+task management
+   add <task>                   Add a new task
+   remove <id>                  Remove a task by its ID
+   list                         List all tasks in a table
+   mark <id> <done|undone>      Mark a task as done or undone
+   search <pattern>             Searches in tasks by the pattern
+
+tag management
+   addTag <task_id> <name> <color>   Add a tag with name and color to a task
+   removeTag <tag_id>                Remove a tag by its ID
+
+misc
+   help                         Show this help message
+
+options
+   -a, add        Shortcut for 'add'
+   -r, remove     Shortcut for 'remove'
+   -l, list       Shortcut for 'list'
+   -m, mark       Shortcut for 'mark'
+   -t, addTag     Shortcut for 'addTag'
+   -rt, removeTag Shortcut for 'removeTag'
+   -s, search     Shortcut for 'search'
+   -h, help       Shortcut for 'help'
+
+Examples:
+   clist add "Buy groceries"
+   clist list
+   clist mark 3 done
+   clist addTag 3 urgent red
+   clist removeTag 2
+
+)" << std::endl;
   }
 
 };
