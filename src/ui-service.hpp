@@ -38,6 +38,11 @@ class UI{
         {
             printTableColor();
         }
+        else if ((std::string(argv[i]) == "search" || std::string(argv[i]) == "-s") && i + 1 < argc){
+            char *pattern = argv[i + 1];
+            printTableSearch(pattern);
+            i++;
+        } 
         else if ((std::string(argv[i]) == "mark" || std::string(argv[i]) == "-m") && i + 2 < argc)
         {
           int task_id = std::stoi(argv[i + 1]);
@@ -115,8 +120,6 @@ static int callback(void *data, int count, char **argv, char **columnNames) {
     return 0;
 }
 
-
-
   void printTableColor(){
     char *errMsg = 0;
     char *sql = "SELECT task_id, task, done, tasks.tag_id, name, color FROM tasks "
@@ -129,6 +132,27 @@ static int callback(void *data, int count, char **argv, char **columnNames) {
     } else {
       printf("read data successfully \n");
     }
+  }
+
+    void printTableSearch(char *pattern){
+      char *errMsg = 0;
+      char sql[256];
+
+      snprintf(sql, sizeof(sql),
+          "SELECT task_id, task, done, tasks.tag_id, name, color "
+          "FROM tasks "
+          "LEFT JOIN tags ON tags.tag_id = tasks.tag_id "
+          "WHERE task LIKE '%%%s%%';", pattern);
+
+      std::cout << sql << std::endl;
+
+      int rc = sqlite3_exec(db_service.pDB, sql, callback, this, &errMsg);
+      if (rc != SQLITE_OK) {
+        printf("Error in executing SQL: %s \n", errMsg);
+        sqlite3_free(errMsg);
+      } else {
+        printf("read data successfully \n");
+      }
   }
 
 };
